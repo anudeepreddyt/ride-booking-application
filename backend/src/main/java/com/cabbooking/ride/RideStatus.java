@@ -1,0 +1,2 @@
+package com.cabbooking.ride;
+public enum RideStatus { REQUESTED, ACCEPTED, DRIVER_ARRIVING, ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED, REJECTED }

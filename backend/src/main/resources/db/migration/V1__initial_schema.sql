@@ -1,0 +1,71 @@
+CREATE TABLE app_users (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180) NOT NULL UNIQUE,
+  phone VARCHAR(30),
+  password_hash VARCHAR(100) NOT NULL,
+  role VARCHAR(20) NOT NULL CHECK (role IN ('RIDER','DRIVER','ADMIN')),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE drivers (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL UNIQUE REFERENCES app_users(id) ON DELETE CASCADE,
+  vehicle_number VARCHAR(30),
+  vehicle_model VARCHAR(100),
+  online BOOLEAN NOT NULL DEFAULT FALSE,
+  rating NUMERIC(3,2) NOT NULL DEFAULT 5.00
+);
+CREATE TABLE rides (
+  id BIGSERIAL PRIMARY KEY,
+  rider_id BIGINT NOT NULL REFERENCES app_users(id),
+  driver_id BIGINT REFERENCES app_users(id),
+  pickup_address VARCHAR(300) NOT NULL,
+  pickup_lat DOUBLE PRECISION NOT NULL,
+  pickup_lng DOUBLE PRECISION NOT NULL,
+  destination_address VARCHAR(300) NOT NULL,
+  destination_lat DOUBLE PRECISION NOT NULL,
+  destination_lng DOUBLE PRECISION NOT NULL,
+  distance_km NUMERIC(8,2) NOT NULL,
+  duration_minutes INTEGER NOT NULL,
+  cab_category VARCHAR(20) NOT NULL,
+  estimated_fare NUMERIC(10,2) NOT NULL,
+  final_fare NUMERIC(10,2),
+  status VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_rides_rider_created ON rides(rider_id, created_at DESC);
+CREATE INDEX idx_rides_driver_status ON rides(driver_id, status);
+CREATE TABLE payments (
+  id BIGSERIAL PRIMARY KEY,
+  ride_id BIGINT NOT NULL UNIQUE REFERENCES rides(id),
+  amount NUMERIC(10,2) NOT NULL,
+  currency VARCHAR(3) NOT NULL DEFAULT 'INR',
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  provider_reference VARCHAR(200),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE ratings (
+  id BIGSERIAL PRIMARY KEY,
+  ride_id BIGINT NOT NULL UNIQUE REFERENCES rides(id),
+  rider_id BIGINT NOT NULL REFERENCES app_users(id),
+  driver_id BIGINT NOT NULL REFERENCES app_users(id),
+  stars INTEGER NOT NULL CHECK (stars BETWEEN 1 AND 5),
+  comment VARCHAR(1000),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE promo_codes (
+  id BIGSERIAL PRIMARY KEY,
+  code VARCHAR(40) NOT NULL UNIQUE,
+  discount_percent INTEGER NOT NULL CHECK (discount_percent BETWEEN 1 AND 100),
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  expires_at TIMESTAMP
+);
+CREATE TABLE support_tickets (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES app_users(id),
+  subject VARCHAR(180) NOT NULL,
+  message TEXT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
