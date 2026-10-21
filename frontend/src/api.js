@@ -4,7 +4,7 @@ import axios from 'axios';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const api = axios.create({
-  baseURL: baseURL || 'http://localhost:8080/api',
+  baseURL: baseURL || 'https://ride-booking-application-backend.onrender.com/api',
 });
 
 api.interceptors.request.use((config) => {
